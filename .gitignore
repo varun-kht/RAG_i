@@ -1,0 +1,45 @@
+# ==========================================
+# CILI RAG System - Git Ignore Configuration
+# ==========================================
+
+# Secret Environment Files & API Keys
+.env
+.env.local
+.env.*.local
+*.env
+
+# Vector Storage & Ingested Databases
+storage/
+data/
+*.json
+*.npy
+*.db
+*.sqlite
+
+# Python Bytecode, Caches & Artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Environments & Packages
+.venv/
+venv/
+ENV/
+env/
+cili/
+
+# OS & System Files
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+
+# IDE & Editor Configurations
+.vscode/
+.idea/
+*.swp
+*.swo

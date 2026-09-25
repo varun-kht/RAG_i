@@ -1,0 +1,14 @@
+# CILI RAG System Dependencies
+# Compatible with Python 3.11+
+
+numpy>=1.24.0
+streamlit>=1.25.0
+pypdf>=3.10.0
+python-docx>=0.8.11
+
+# LLM Providers (Optional, fallback HTTP mode included):
+groq>=0.4.0
+google-genai>=0.1.0
+
+# Optional Embedding Models:
+# sentence-transformers>=2.2.2

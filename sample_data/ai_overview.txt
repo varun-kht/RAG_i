@@ -1,0 +1,14 @@
+Retrieval-Augmented Generation (RAG) is an architectural framework that improves the quality of Large Language Model (LLM) responses by grounding the model on external knowledge sources.
+
+Key Components of RAG:
+1. Document Ingestion: Converting raw unstructured documents (PDFs, text, markdown) into clean text strings.
+2. Text Chunking: Splitting large documents into smaller overlapping segments to maintain semantic focus.
+3. Embedding Generation: Transforming text chunks into high-dimensional dense vector representations.
+4. Vector Database: Storing and indexing vectors for ultra-fast similarity search (Cosine Similarity, Dot Product, Euclidean distance).
+5. Context Retrieval: Fetching the top-K most relevant chunks based on semantic similarity to a user query.
+6. LLM Synthesis: Providing the retrieved context along with a prompt to a generative model like Gemini to generate accurate answers with source citations.
+
+Benefits of RAG:
+- Eliminates LLM hallucinations by restricting answers to authoritative context.
+- Enables real-time document search without expensive model fine-tuning.
+- Maintains privacy by keeping sensitive internal documents stored in local vector stores.
