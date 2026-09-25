@@ -1,7 +1,7 @@
 """
 Configuration settings for the CILI RAG System.
 Automatically loads environment variables from .env file.
-Compatible with Python 3.11+.
+Compatible with Python 3.11+. Supports Vercel Serverless Read-Only Filesystem.
 """
 
 import os
@@ -32,15 +32,25 @@ def load_dotenv(env_file_path: Path):
 # Auto-load .env file from project root
 load_dotenv(BASE_DIR / ".env")
 
-# Default Paths
-DATA_DIR = BASE_DIR / "data"
-STORAGE_DIR = BASE_DIR / "storage"
-SAMPLE_DATA_DIR = BASE_DIR / "sample_data"
+# Detect Vercel / AWS Lambda Serverless Environment (Read-Only Filesystem)
+IS_VERCEL = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
 
-# Ensure required directories exist
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-STORAGE_DIR.mkdir(parents=True, exist_ok=True)
-SAMPLE_DATA_DIR.mkdir(parents=True, exist_ok=True)
+if IS_VERCEL:
+    DATA_DIR = Path("/tmp/data")
+    STORAGE_DIR = Path("/tmp/storage")
+    SAMPLE_DATA_DIR = BASE_DIR / "sample_data"
+else:
+    DATA_DIR = BASE_DIR / "data"
+    STORAGE_DIR = BASE_DIR / "storage"
+    SAMPLE_DATA_DIR = BASE_DIR / "sample_data"
+
+# Ensure required directories exist (safely catch read-only errors)
+try:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+    SAMPLE_DATA_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
 
 @dataclass
 class RAGConfig:

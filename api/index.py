@@ -1,10 +1,12 @@
 """
 FastAPI Serverless Function Entrypoint for CILI RAG System on Vercel.
-Exports top-level 'app' and 'handler' variables.
+Supports Vercel Serverless Read-Only Filesystem & Lazy Engine Initialization.
 Compatible with Python 3.11+.
 """
 
+import os
 import sys
+import traceback
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
@@ -18,19 +20,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from config import default_config
-from rag_engine import RAGEngine
 
-# Initialize RAG Engine
-engine = RAGEngine(config=default_config)
+# Global engine instance for lazy loading
+_engine_instance = None
 
-# Top-level FastAPI application export required by Vercel
+def get_engine():
+    global _engine_instance
+    if _engine_instance is None:
+        from rag_engine import RAGEngine
+        _engine_instance = RAGEngine(config=default_config)
+    return _engine_instance
+
+
+# Top-level FastAPI app export for Vercel
 app = FastAPI(
     title="CILI RAG System API",
     description="FastAPI Serverless RAG API for Vercel",
     version="1.0.0"
 )
 
-# Alias for Vercel handler scanner
 handler = app
 
 # Enable CORS
@@ -62,17 +70,27 @@ class ChatRequest(BaseModel):
 @app.get("/api")
 @app.get("/api/health")
 def health_check():
-    return {
-        "status": "online",
-        "system": "CILI RAG System",
-        "model": default_config.groq_model,
-        "indexed_chunks": engine.vector_store.count()
-    }
+    try:
+        engine = get_engine()
+        return {
+            "status": "online",
+            "system": "CILI RAG System",
+            "model": default_config.groq_model,
+            "indexed_chunks": engine.vector_store.count()
+        }
+    except Exception as e:
+        return {
+            "status": "online",
+            "system": "CILI RAG System",
+            "model": default_config.groq_model,
+            "engine_status": f"Initializing: {str(e)}"
+        }
 
 
 @app.post("/api/query")
 def query_rag(req: QueryRequest):
     try:
+        engine = get_engine()
         res = engine.query(req.question, top_k=req.top_k)
         return {
             "question": res.question,
@@ -89,12 +107,14 @@ def query_rag(req: QueryRequest):
             ]
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Query error: {str(e)}")
 
 
 @app.post("/api/chat")
 def chat_rag(req: ChatRequest):
     try:
+        engine = get_engine()
         history = [{"role": m.role, "content": m.content} for m in req.messages]
         res = engine.chat(messages=history, top_k=req.top_k)
         return {
@@ -112,4 +132,5 @@ def chat_rag(req: ChatRequest):
             ]
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
